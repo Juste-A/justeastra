@@ -1,9 +1,6 @@
 <script setup>
-defineProps({
-  title: { type: String, required: true },
-  to: { type: String, default: "" },
-});
-const NuxtLink = resolveComponent("NuxtLink");
+defineProps({ title: { type: String, required: true }, to: { type: String, default: '' } })
+const NuxtLink = resolveComponent('NuxtLink')
 </script>
 
 <template>
@@ -14,9 +11,7 @@ const NuxtLink = resolveComponent("NuxtLink");
     class="group flex items-center gap-10"
     data-reveal
   >
-    <h2
-      class="font-display text-[30px] font-bold uppercase leading-[1.4] tracking-[0.04em] text-accent lg:text-[32px]"
-    >
+    <h2 class="font-display text-[30px] font-bold uppercase leading-[1.4] tracking-[0.04em] text-accent lg:text-[32px]">
       {{ title }}
     </h2>
 
@@ -25,22 +20,23 @@ const NuxtLink = resolveComponent("NuxtLink");
       <span class="heading-track absolute inset-y-0 left-0 bg-soft" />
       <!-- accent dash: slides in on scroll, stretches into the arrow shaft on hover -->
       <span class="heading-bar absolute inset-y-0 bg-accent" />
-      <!-- arrow head: two short bars that fold out from the tip -->
-      <span
-        class="heading-head heading-head--up absolute right-0 top-0 h-1 w-5 bg-accent"
-      />
-      <span
-        class="heading-head heading-head--down absolute right-0 top-0 h-1 w-5 bg-accent"
-      />
+      <!-- arrow head: one chevron with a sharp mitred point, grows out from the tip -->
+      <svg
+        class="heading-head absolute right-0 top-[-11px] h-[26px] w-[14px] overflow-visible text-accent"
+        viewBox="0 0 14 26"
+        fill="none"
+      >
+        <polyline points="1,1 11,13 1,25" stroke="currentColor" stroke-width="4" stroke-linejoin="miter" />
+      </svg>
     </span>
   </component>
 </template>
 
 <style scoped>
-/* Clip the dash's slide-in sideways, but let the arrow head stick out above and below */
+/* Hide the dash while it slides in from the left, but let the arrow head
+   stick out above, below and past the right end of the line */
 .heading-line {
-  overflow-x: clip;
-  overflow-y: visible;
+  clip-path: inset(-20px -20px -20px 0);
 }
 
 .heading-track,
@@ -61,7 +57,7 @@ const NuxtLink = resolveComponent("NuxtLink");
 .heading-head {
   transform-origin: right center;
   opacity: 0;
-  transform: rotate(0deg) scaleX(0);
+  transform: scale(0.4);
 }
 
 /* Hover / keyboard focus: dash becomes an arrow */
@@ -77,14 +73,7 @@ const NuxtLink = resolveComponent("NuxtLink");
 .group:hover .heading-head,
 .group:focus-visible .heading-head {
   opacity: 1;
-}
-.group:hover .heading-head--up,
-.group:focus-visible .heading-head--up {
-  transform: rotate(55deg) scaleX(1);
-}
-.group:hover .heading-head--down,
-.group:focus-visible .heading-head--down {
-  transform: rotate(-55deg) scaleX(1);
+  transform: scale(1);
 }
 
 /* Dash slides in from the left when the heading scrolls into view */
