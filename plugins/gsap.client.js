@@ -5,7 +5,6 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 // Optional `data-reveal-delay="0.1"` staggers siblings.
 export default defineNuxtPlugin((nuxtApp) => {
   gsap.registerPlugin(ScrollTrigger)
-  document.documentElement.classList.add('js')
 
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 

@@ -44,6 +44,9 @@ export default defineNuxtConfig({
         { rel: 'icon', href: '/favicon-dark.svg', media: '(prefers-color-scheme: dark)' },
         { rel: 'apple-touch-icon', href: '/apple-touch-icon.png' },
       ],
+      script: [
+        { innerHTML: "document.documentElement.setAttribute('data-js','')", tagPosition: 'head' },
+      ],
     },
     pageTransition: { name: 'page', mode: 'out-in' },
   },

@@ -72,22 +72,13 @@ a {
   opacity: 0;
 }
 
-/* Elements revealed on scroll start hidden only once JS is running. */
-.js [data-reveal] {
-  opacity: 0;
-  transform: translateY(40px);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .js [data-reveal] {
-    opacity: 1;
-    transform: none;
+/* Hidden before first paint only when JS is running and motion is allowed. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-js] [data-intro] {
+    opacity: 0;
   }
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+  [data-js] [data-reveal] {
+    opacity: 0;
+    transform: translateY(40px);
   }
 }
