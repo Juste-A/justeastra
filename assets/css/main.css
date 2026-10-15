@@ -4,6 +4,7 @@
 
 /* Colour tokens taken from the live Framer site (light + dark). */
 :root {
+  --stack-top: 110px;          /* where the About cards stick, just below the sticky header */
   --bg: 240 240 240;          /* #f0f0f0 */
   --ink: 18 18 18;            /* #121212 */
   --muted: rgba(18, 18, 18, 0.75);

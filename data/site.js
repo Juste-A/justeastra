@@ -101,14 +101,14 @@ export const education = [
     dates: '2003 - 2007',
     text: 'Completed a four-year degree covering management, economics, marketing, statistics, and business operations. This strengthened analytical thinking, research skills, and structured problem-solving, all transferable strengths in software development.',
     // On desktop the live site shows this one bottom-left.
-    mdOrder: 3,
+    mdOrder: 2,
   },
   {
     title: 'Buying, Merchandising & Management (Postgraduate)',
     place: 'Fashion Retail Academy, London, UK',
     dates: '2013',
     text: 'Intensive postgraduate programme focused on buying, merchandising, retail strategy and commercial decision-making. Developed strong analytical, organisational and communication skills that support collaborative work in cross-functional teams.',
-    mdOrder: 2,
+    mdOrder: 3,
   },
   {
     title: 'Continuous Learning: Front-End Development',
