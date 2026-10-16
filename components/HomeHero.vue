@@ -7,19 +7,13 @@ let cleanup = () => {}
 let cleanupScroll = () => {}
 
 onMounted(() => {
-  // Scroll cue (runs for everyone, including reduced motion).
-  // It normally sits under the intro text. If the hero is taller than the screen, so the
-  // cue would start below the fold, it's pinned to the bottom-right corner instead and
-  // fades out as soon as scrolling starts.
+  // Scroll cue (runs for everyone, including reduced motion): fades out once you start
+  // scrolling and comes back when you return to the top.
   const cue = root.value.querySelector('.hero-cue')
-  // Phones never pin: the corner would sit on the intro text (short phones get tighter spacing instead).
-  const pin = window.innerWidth >= 810 && window.scrollY < 40 && cue.getBoundingClientRect().bottom > window.innerHeight
-  if (pin) {
-    cue.classList.add('is-pinned')
-    const onScroll = () => cue.classList.toggle('is-hidden', window.scrollY > 40)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    cleanupScroll = () => window.removeEventListener('scroll', onScroll)
-  }
+  const onScroll = () => cue.classList.toggle('is-hidden', window.scrollY > 40)
+  onScroll()
+  window.addEventListener('scroll', onScroll, { passive: true })
+  cleanupScroll = () => window.removeEventListener('scroll', onScroll)
 
   if (!$gsap || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const q = (s) => root.value.querySelectorAll(s)
@@ -70,17 +64,17 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <section ref="root" class="container-site flex flex-col items-center pt-[50px] text-center lg:pt-9">
+  <section ref="root" class="hero-top container-site flex flex-col items-center pt-[50px] text-center lg:pt-9">
     <p class="hero-eyebrow flex flex-wrap justify-center gap-x-1 text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">
       <span v-for="word in hero.eyebrow.split(' ')" :key="word" data-intro>{{ word }}</span>
     </p>
 
-    <h1 class="relative mt-[10px] font-display font-black uppercase text-accent">
+    <h1 class="hero-name-box relative mt-[10px] font-display font-black uppercase text-accent">
       <span class="sr-only">{{ hero.first }} {{ hero.last }}</span>
-      <span aria-hidden="true" class="flex justify-center text-[120px] leading-[1.1] tracking-[-0.02em] md:text-[200px] lg:text-[260px]">
+      <span aria-hidden="true" class="hero-name-size flex justify-center text-[120px] leading-[1.1] tracking-[-0.02em] md:text-[200px] lg:text-[260px]">
         <span v-for="(l, i) in hero.first.split('')" :key="i" class="hero-letter inline-block" data-intro>{{ l }}</span>
       </span>
-      <span aria-hidden="true" class="hero-last -mt-[22px] block text-[120px] leading-[1.1] tracking-[-0.02em] md:-mt-[38px] md:text-[200px] lg:-mt-[38px] lg:text-[260px]" data-intro>
+      <span aria-hidden="true" class="hero-last hero-name-size -mt-[22px] block text-[120px] leading-[1.1] tracking-[-0.02em] md:-mt-[38px] md:text-[200px] lg:-mt-[38px] lg:text-[260px]" data-intro>
         {{ hero.last }}
       </span>
       <!-- Pill photo over the middle of the name.
@@ -97,50 +91,60 @@ onBeforeUnmount(() => {
       </span>
     </h1>
 
-    <div class="hero-fade hero-star mt-[60px] h-6 w-6 text-accent lg:mt-[86px] lg:h-12 lg:w-12" data-intro>
+    <div class="hero-fade hero-star h-6 w-6 text-accent lg:h-12 lg:w-12" data-intro>
       <StarIcon />
     </div>
 
-    <p class="hero-fade hero-intro mt-6 max-w-[550px] text-[16px] leading-[1.8] lg:mt-10 lg:text-[22px]" data-intro>
+    <!-- Scroll cue right under the star, so it's visible on the first screen -->
+    <div class="hero-cue mt-3 lg:mt-4">
+      <a href="#about" class="hero-fade flex flex-col items-center gap-[11px]" aria-label="Scroll to About" data-intro>
+        <span class="relative block h-[33px] w-[3px] overflow-hidden bg-track">
+          <span class="scroll-dot absolute left-0 top-0 h-[14px] w-[3px] bg-accent" />
+        </span>
+        <span class="text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">SCROLL</span>
+      </a>
+    </div>
+
+    <p class="hero-fade mt-10 max-w-[550px] text-[16px] leading-[1.8] lg:mt-[72px] lg:text-[22px]" data-intro>
       {{ hero.intro }}
     </p>
-
-    <!-- Scroll cue. The wrapper keeps its space in the layout even when the cue is pinned. -->
-    <div class="hero-cue-slot mt-6 h-[58px] lg:mt-[190px]">
-      <div class="hero-cue">
-        <a href="#about" class="hero-fade flex flex-col items-center gap-[11px]" aria-label="Scroll to About" data-intro>
-          <span class="relative block h-[33px] w-[3px] overflow-hidden bg-track">
-            <span class="scroll-dot absolute left-0 top-0 h-[14px] w-[3px] bg-accent" />
-          </span>
-          <span class="text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">SCROLL</span>
-        </a>
-      </div>
-    </div>
   </section>
 </template>
 
 <style scoped>
-/* Short phones (e.g. iPhone SE): tighten the spacing so the cue still fits on the first screen */
-@media (max-width: 809px) and (max-height: 700px) {
+/* Star sits closer to the name than before */
+.hero-star {
+  margin-top: 32px;
+}
+@media (min-width: 1200px) {
   .hero-star {
-    margin-top: 32px;
+    margin-top: clamp(16px, 3svh, 40px);
   }
-  .hero-intro,
-  .hero-cue-slot {
-    margin-top: 16px;
+  /* Full 260px name on most screens. On short laptop screens (under ~830px tall) it shrinks
+     just enough for the star and scroll cue to fit on the first screen. The pill photo and
+     the overlap between the two lines are in em, so they scale with the name. */
+  .hero-name-box,
+  .hero-name-size {
+    font-size: min(260px, calc((100svh - 300px) / 2.05));
+  }
+  .hero-last {
+    margin-top: -0.146em;
+  }
+  .hero-image {
+    top: 0.49em;
+    height: 1.077em;
+    width: 0.677em;
   }
 }
-
-/* Pinned: bottom-right corner, lined up with the right edge of the content column
-   (the theme switch), so it never sits on top of the intro text. */
-.hero-cue.is-pinned {
-  position: fixed;
-  z-index: 30;
-  bottom: 24px;
-  right: max(5%, calc((100vw - 928px) / 2));
+@media (min-width: 1200px) and (max-height: 830px) {
+  .hero-top {
+    padding-top: 12px;
+  }
+}
+.hero-cue {
   transition: opacity 0.4s ease, transform 0.4s ease;
 }
-.hero-cue.is-pinned.is-hidden {
+.hero-cue.is-hidden {
   opacity: 0;
   transform: translateY(12px);
   pointer-events: none;
