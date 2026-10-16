@@ -4,8 +4,23 @@ import { hero } from '~/data/site.js'
 const root = ref(null)
 const { $gsap } = useNuxtApp()
 let cleanup = () => {}
+let cleanupScroll = () => {}
 
 onMounted(() => {
+  // Scroll cue (runs for everyone, including reduced motion).
+  // It normally sits under the intro text. If the hero is taller than the screen, so the
+  // cue would start below the fold, it's pinned to the bottom-right corner instead and
+  // fades out as soon as scrolling starts.
+  const cue = root.value.querySelector('.hero-cue')
+  // Phones never pin: the corner would sit on the intro text (short phones get tighter spacing instead).
+  const pin = window.innerWidth >= 810 && window.scrollY < 40 && cue.getBoundingClientRect().bottom > window.innerHeight
+  if (pin) {
+    cue.classList.add('is-pinned')
+    const onScroll = () => cue.classList.toggle('is-hidden', window.scrollY > 40)
+    window.addEventListener('scroll', onScroll, { passive: true })
+    cleanupScroll = () => window.removeEventListener('scroll', onScroll)
+  }
+
   if (!$gsap || window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
   const q = (s) => root.value.querySelectorAll(s)
 
@@ -48,79 +63,87 @@ onMounted(() => {
   }
 })
 
-onBeforeUnmount(() => cleanup())
+onBeforeUnmount(() => {
+  cleanup()
+  cleanupScroll()
+})
 </script>
 
 <template>
-  <!-- Fills the first screen (minus the sticky header) so the scroll cue is always visible on load -->
-  <section ref="root" class="hero container-site flex flex-col items-center text-center">
-    <!-- Everything except the scroll cue, centred in the space above it -->
-    <div class="flex flex-1 flex-col items-center justify-center">
-      <p class="hero-eyebrow flex flex-wrap justify-center gap-x-1 text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">
-        <span v-for="word in hero.eyebrow.split(' ')" :key="word" data-intro>{{ word }}</span>
-      </p>
+  <section ref="root" class="container-site flex flex-col items-center pt-[50px] text-center lg:pt-9">
+    <p class="hero-eyebrow flex flex-wrap justify-center gap-x-1 text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">
+      <span v-for="word in hero.eyebrow.split(' ')" :key="word" data-intro>{{ word }}</span>
+    </p>
 
-      <h1 class="hero-name relative mt-[10px] font-display font-black uppercase text-accent">
-        <span class="sr-only">{{ hero.first }} {{ hero.last }}</span>
-        <span aria-hidden="true" class="flex justify-center leading-[1.1] tracking-[-0.02em]">
-          <span v-for="(l, i) in hero.first.split('')" :key="i" class="hero-letter inline-block" data-intro>{{ l }}</span>
+    <h1 class="relative mt-[10px] font-display font-black uppercase text-accent">
+      <span class="sr-only">{{ hero.first }} {{ hero.last }}</span>
+      <span aria-hidden="true" class="flex justify-center text-[120px] leading-[1.1] tracking-[-0.02em] md:text-[200px] lg:text-[260px]">
+        <span v-for="(l, i) in hero.first.split('')" :key="i" class="hero-letter inline-block" data-intro>{{ l }}</span>
+      </span>
+      <span aria-hidden="true" class="hero-last -mt-[22px] block text-[120px] leading-[1.1] tracking-[-0.02em] md:-mt-[38px] md:text-[200px] lg:-mt-[38px] lg:text-[260px]" data-intro>
+        {{ hero.last }}
+      </span>
+      <!-- Pill photo over the middle of the name.
+           .hero-image  = position + intro animation
+           .hero-float  = follows the mouse
+           .hero-photo  = moves the opposite way inside the pill -->
+      <span
+        class="hero-image absolute inset-x-0 top-[55px] mx-auto h-[140px] w-[88px] md:top-[100px] md:h-[220px] md:w-[136px] lg:top-[128px] lg:h-[280px] lg:w-[176px]"
+        data-intro
+      >
+        <span class="hero-float block h-full w-full overflow-hidden rounded-[85px]">
+          <img :src="hero.image" alt="" class="hero-photo h-full w-full object-cover" width="176" height="280" fetchpriority="high" />
         </span>
-        <span aria-hidden="true" class="hero-last -mt-[0.15em] block leading-[1.1] tracking-[-0.02em]" data-intro>
-          {{ hero.last }}
-        </span>
-        <!-- Pill photo over the middle of the name.
-             .hero-image  = position + intro animation
-             .hero-float  = follows the mouse
-             .hero-photo  = moves the opposite way inside the pill -->
-        <span
-          class="hero-image absolute inset-x-0 top-[0.49em] mx-auto h-[1.08em] w-[0.68em]"
-          data-intro
-        >
-          <span class="hero-float block h-full w-full overflow-hidden rounded-full">
-            <img :src="hero.image" alt="" class="hero-photo h-full w-full object-cover" width="176" height="280" fetchpriority="high" />
-          </span>
-        </span>
-      </h1>
+      </span>
+    </h1>
 
-      <div class="hero-fade hero-gap h-6 w-6 text-accent lg:h-10 lg:w-10" data-intro>
-        <StarIcon />
-      </div>
-
-      <p class="hero-fade hero-gap-sm max-w-[550px] text-[16px] leading-[1.8] lg:text-[20px]" data-intro>
-        {{ hero.intro }}
-      </p>
+    <div class="hero-fade hero-star mt-[60px] h-6 w-6 text-accent lg:mt-[86px] lg:h-12 lg:w-12" data-intro>
+      <StarIcon />
     </div>
 
-    <a href="#about" class="hero-fade flex flex-col items-center gap-[11px] pb-6 pt-6" aria-label="Scroll to About" data-intro>
-      <span class="relative block h-[33px] w-[3px] overflow-hidden bg-track">
-        <span class="scroll-dot absolute left-0 top-0 h-[14px] w-[3px] bg-accent" />
-      </span>
-      <span class="text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">SCROLL</span>
-    </a>
+    <p class="hero-fade hero-intro mt-6 max-w-[550px] text-[16px] leading-[1.8] lg:mt-10 lg:text-[22px]" data-intro>
+      {{ hero.intro }}
+    </p>
+
+    <!-- Scroll cue. The wrapper keeps its space in the layout even when the cue is pinned. -->
+    <div class="hero-cue-slot mt-6 h-[58px] lg:mt-[190px]">
+      <div class="hero-cue">
+        <a href="#about" class="hero-fade flex flex-col items-center gap-[11px]" aria-label="Scroll to About" data-intro>
+          <span class="relative block h-[33px] w-[3px] overflow-hidden bg-track">
+            <span class="scroll-dot absolute left-0 top-0 h-[14px] w-[3px] bg-accent" />
+          </span>
+          <span class="text-[10px] font-medium leading-[1.1] tracking-[0.08em] text-muted lg:text-[14px]">SCROLL</span>
+        </a>
+      </div>
+    </div>
   </section>
 </template>
 
 <style scoped>
-/* Header is 90px tall on phones/tablets and 100px on desktop */
-.hero {
-  min-height: calc(100svh - 90px);
-  padding-top: clamp(12px, 2.5svh, 36px);
-}
-@media (min-width: 1200px) {
-  .hero {
-    min-height: calc(100svh - 100px);
+/* Short phones (e.g. iPhone SE): tighten the spacing so the cue still fits on the first screen */
+@media (max-width: 809px) and (max-height: 700px) {
+  .hero-star {
+    margin-top: 32px;
+  }
+  .hero-intro,
+  .hero-cue-slot {
+    margin-top: 16px;
   }
 }
-/* The name scales with both width and height, so it never pushes the scroll cue off screen.
-   The pill photo is sized in em, so it scales with the name. */
-.hero-name {
-  font-size: clamp(80px, min(24vw, 20svh), 260px);
+
+/* Pinned: bottom-right corner, lined up with the right edge of the content column
+   (the theme switch), so it never sits on top of the intro text. */
+.hero-cue.is-pinned {
+  position: fixed;
+  z-index: 30;
+  bottom: 24px;
+  right: max(5%, calc((100vw - 928px) / 2));
+  transition: opacity 0.4s ease, transform 0.4s ease;
 }
-.hero-gap {
-  margin-top: clamp(20px, 4svh, 60px);
-}
-.hero-gap-sm {
-  margin-top: clamp(12px, 2.5svh, 32px);
+.hero-cue.is-pinned.is-hidden {
+  opacity: 0;
+  transform: translateY(12px);
+  pointer-events: none;
 }
 .scroll-dot {
   animation: scroll-dot 1.6s ease-in-out infinite alternate;
